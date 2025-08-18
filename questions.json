@@ -1,0 +1,94 @@
+[
+  {
+    "id": "1755465984580",
+    "materia": "Matemática",
+    "enunciado": "PERGUNTA TESTE",
+    "alternativas": [
+      {
+        "letra": "A",
+        "texto": "TESTE"
+      },
+      {
+        "letra": "B",
+        "texto": "TESSTE"
+      },
+      {
+        "letra": "C",
+        "texto": "TESTÃO"
+      },
+      {
+        "letra": "D",
+        "texto": "TESTINHA"
+      }
+    ],
+    "correta": "C",
+    "feedbacks": [
+      {
+        "letra": "A",
+        "texto": "banana"
+      },
+      {
+        "letra": "B",
+        "texto": "nanica"
+      },
+      {
+        "letra": "C",
+        "texto": "sim sim"
+      },
+      {
+        "letra": "D",
+        "texto": "eae"
+      }
+    ],
+    "dica": "EU DESISTIRIA",
+    "explicacao": "DO QUE ME ADIANTA, VIVER NA CIDADE?",
+    "createdAt": "2025-08-17T21:26:24.581Z",
+    "updatedAt": "2025-08-17T21:26:24.581Z"
+  },
+  {
+    "id": "1755466028733",
+    "materia": "Matemática",
+    "enunciado": "AAAAAAAAAA",
+    "alternativas": [
+      {
+        "letra": "A",
+        "texto": "AAAAAAAAAA"
+      },
+      {
+        "letra": "B",
+        "texto": "AAAAAA"
+      },
+      {
+        "letra": "C",
+        "texto": "AAAAAAAAAAA"
+      },
+      {
+        "letra": "D",
+        "texto": "AAAAAAAAAAAAAAAAAAAAAAAAAA"
+      }
+    ],
+    "correta": "C",
+    "feedbacks": [
+      {
+        "letra": "A",
+        "texto": "ASSSSSSSSSSSSSSSSSSSSSS"
+      },
+      {
+        "letra": "B",
+        "texto": "SSSSFFFFFFFFFFFFFFFFFFF"
+      },
+      {
+        "letra": "C",
+        "texto": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+      },
+      {
+        "letra": "D",
+        "texto": "FFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+      }
+    ],
+    "dica": "F4444444444444",
+    "explicacao": "GGGGGGGGGGGGGGGGGGG",
+    "createdAt": "2025-08-17T21:27:08.733Z",
+    "updatedAt": "2025-08-17T21:27:08.733Z"
+  }
+]

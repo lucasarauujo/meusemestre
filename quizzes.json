@@ -1,0 +1,16 @@
+[
+  {
+    "id": "1755466084160",
+    "titulo": "teste",
+    "descricao": "teste",
+    "materia": "Matemática",
+    "questionIds": [
+      "1755466028733",
+      "1755465984580"
+    ],
+    "tempoEstimado": 30,
+    "instrucoes": "responde ai",
+    "createdAt": "2025-08-17T21:28:04.161Z",
+    "updatedAt": "2025-08-17T21:28:04.161Z"
+  }
+]
