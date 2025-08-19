@@ -92,10 +92,12 @@ class PostService {
 
   async createPost(postData) {
     if (this.useDatabase) {
-      const post = new Post({
+      const transformedData = {
         ...postData,
-        quizId: postData.quizId || null
-      });
+        quizId: postData.quizId && postData.quizId.trim() !== '' ? postData.quizId : null
+      };
+
+      const post = new Post(transformedData);
       return await post.save();
     } else {
       const posts = await this.readFromJSON();

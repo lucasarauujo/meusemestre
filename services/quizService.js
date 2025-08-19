@@ -149,16 +149,28 @@ class QuizService {
 
   async createQuiz(quizData) {
     if (this.useDatabase) {
-      // Verifica se as questões existem
-      const validQuestions = await Question.find({ 
-        _id: { $in: quizData.questionIds } 
+      // Converte string IDs para ObjectIds e verifica se as questões existem
+      const objectIds = quizData.questionIds.map(id => {
+        if (typeof id === 'string' && id.length === 24) {
+          return id;
+        }
+        throw new Error(`ID de questão inválido: ${id}`);
       });
 
-      if (validQuestions.length !== quizData.questionIds.length) {
-        throw new Error('Algumas questões não foram encontradas');
+      const validQuestions = await Question.find({ 
+        _id: { $in: objectIds } 
+      });
+
+      if (validQuestions.length !== objectIds.length) {
+        console.log('IDs enviados:', objectIds);
+        console.log('Questões encontradas:', validQuestions.map(q => q._id));
+        throw new Error(`Algumas questões não foram encontradas. Esperadas: ${objectIds.length}, Encontradas: ${validQuestions.length}`);
       }
 
-      const quiz = new Quiz(quizData);
+      const quiz = new Quiz({
+        ...quizData,
+        questionIds: objectIds
+      });
       return await quiz.save();
     } else {
       const quizzes = await this.readFromJSON();
@@ -193,20 +205,33 @@ class QuizService {
 
   async updateQuiz(id, quizData) {
     if (this.useDatabase) {
-      // Verifica se as questões existem
+      // Converte string IDs para ObjectIds e verifica se as questões existem
+      let transformedData = { ...quizData };
+      
       if (quizData.questionIds) {
-        const validQuestions = await Question.find({ 
-          _id: { $in: quizData.questionIds } 
+        const objectIds = quizData.questionIds.map(qId => {
+          if (typeof qId === 'string' && qId.length === 24) {
+            return qId;
+          }
+          throw new Error(`ID de questão inválido: ${qId}`);
         });
 
-        if (validQuestions.length !== quizData.questionIds.length) {
+        const validQuestions = await Question.find({ 
+          _id: { $in: objectIds } 
+        });
+
+        if (validQuestions.length !== objectIds.length) {
           throw new Error('Algumas questões não foram encontradas');
         }
+
+        transformedData.questionIds = objectIds;
       }
+
+      transformedData.updatedAt = new Date();
 
       return await Quiz.findByIdAndUpdate(
         id, 
-        { ...quizData, updatedAt: new Date() },
+        transformedData,
         { new: true, runValidators: true }
       );
     } else {
