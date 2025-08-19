@@ -34,8 +34,7 @@
     "dev": "concurrently \"npm run server\" \"npm run dev:client\"",
     "dev:client": "react-scripts start",
     "dev:server": "nodemon server.js",
-    "build:full": "npm run build && echo Build completo! Frontend + Backend prontos para hospedagem.",
-    "postinstall": "npm run build"
+    "build:full": "npm run build && echo Build completo! Frontend + Backend prontos para hospedagem."
   },
   "eslintConfig": {
     "extends": [
