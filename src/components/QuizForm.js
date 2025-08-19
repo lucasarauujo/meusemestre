@@ -46,11 +46,14 @@ const QuizForm = ({ quiz, onSubmit, onClose }) => {
   };
 
   const handleQuestionToggle = (questionId) => {
+    // Normalizar ID (MongoDB usa _id, JSON usa id)
+    const normalizedQuestionId = questionId._id || questionId.id || questionId;
+    
     setFormData(prev => ({
       ...prev,
-      questionIds: prev.questionIds.includes(questionId)
-        ? prev.questionIds.filter(id => id !== questionId)
-        : [...prev.questionIds, questionId]
+      questionIds: prev.questionIds.includes(normalizedQuestionId)
+        ? prev.questionIds.filter(id => id !== normalizedQuestionId)
+        : [...prev.questionIds, normalizedQuestionId]
     }));
   };
 
@@ -93,7 +96,9 @@ const QuizForm = ({ quiz, onSubmit, onClose }) => {
   };
 
   const isQuestionSelected = (questionId) => {
-    return formData.questionIds.includes(questionId);
+    // Normalizar IDs para comparação (MongoDB usa _id, JSON usa id)
+    const normalizedQuestionId = questionId._id || questionId.id || questionId;
+    return formData.questionIds.includes(normalizedQuestionId);
   };
 
   if (loading) {
@@ -218,16 +223,18 @@ const QuizForm = ({ quiz, onSubmit, onClose }) => {
                   <div key={materia} className="materia-section">
                     <h5 className="materia-title">📚 {materia}</h5>
                     <div className="questions-list">
-                      {questions.map(question => (
+                      {questions.map(question => {
+                        const questionId = question._id || question.id;
+                        return (
                         <div 
-                          key={question.id} 
-                          className={`question-item ${isQuestionSelected(question.id) ? 'selected' : ''}`}
-                          onClick={() => handleQuestionToggle(question.id)}
+                          key={questionId} 
+                          className={`question-item ${isQuestionSelected(questionId) ? 'selected' : ''}`}
+                          onClick={() => handleQuestionToggle(questionId)}
                         >
                           <input
                             type="checkbox"
-                            checked={isQuestionSelected(question.id)}
-                            onChange={() => handleQuestionToggle(question.id)}
+                            checked={isQuestionSelected(questionId)}
+                            onChange={() => handleQuestionToggle(questionId)}
                             className="question-checkbox"
                           />
                           <div className="question-content">
@@ -242,7 +249,7 @@ const QuizForm = ({ quiz, onSubmit, onClose }) => {
                             </span>
                           </div>
                         </div>
-                      ))}
+                      )})}
                     </div>
                   </div>
                 );
