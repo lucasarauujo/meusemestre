@@ -120,15 +120,18 @@ class QuizService {
 
   async getQuizById(id) {
     if (this.useDatabase) {
-      const quiz = await Quiz.findById(id)
-        .populate('questionIds')
-        .lean();
+      const quiz = await Quiz.findById(id).lean();
       
       if (!quiz) return null;
       
+      // Buscar questões relacionadas manualmente
+      const questions = await Question.find({ 
+        _id: { $in: quiz.questionIds } 
+      }).lean();
+      
       return {
         ...quiz,
-        questions: quiz.questionIds // Renomeia para manter compatibilidade
+        questions: questions // Questões completas para execução
       };
     } else {
       const quizzes = await this.readFromJSON();
