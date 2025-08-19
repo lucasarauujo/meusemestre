@@ -110,7 +110,20 @@ class QuestionService {
 
   async createQuestion(questionData) {
     if (this.useDatabase) {
-      const question = new Question(questionData);
+      // Transformar dados do frontend para o formato do MongoDB
+      const transformedData = {
+        ...questionData,
+        alternativas: questionData.alternativas.map((texto, index) => ({
+          letra: String.fromCharCode(65 + index), // A, B, C, D
+          texto: texto.trim()
+        })),
+        feedbacks: questionData.feedbacks.map((texto, index) => ({
+          letra: String.fromCharCode(65 + index), // A, B, C, D
+          texto: texto.trim()
+        }))
+      };
+
+      const question = new Question(transformedData);
       return await question.save();
     } else {
       const questions = await this.readFromJSON();
@@ -142,9 +155,23 @@ class QuestionService {
 
   async updateQuestion(id, questionData) {
     if (this.useDatabase) {
+      // Transformar dados do frontend para o formato do MongoDB
+      const transformedData = {
+        ...questionData,
+        alternativas: questionData.alternativas.map((texto, index) => ({
+          letra: String.fromCharCode(65 + index), // A, B, C, D
+          texto: texto.trim()
+        })),
+        feedbacks: questionData.feedbacks.map((texto, index) => ({
+          letra: String.fromCharCode(65 + index), // A, B, C, D
+          texto: texto.trim()
+        })),
+        updatedAt: new Date()
+      };
+
       return await Question.findByIdAndUpdate(
         id, 
-        { ...questionData, updatedAt: new Date() },
+        transformedData,
         { new: true, runValidators: true }
       );
     } else {
