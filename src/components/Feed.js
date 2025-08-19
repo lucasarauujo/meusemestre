@@ -45,7 +45,13 @@ const Feed = ({ posts }) => {
 
   const handleStartQuiz = async (quizId) => {
     try {
-      const quiz = await apiService.fetchQuizById(quizId);
+      // Garantir que quizId é uma string válida
+      const id = String(quizId).trim();
+      if (!id) {
+        throw new Error('ID do questionário inválido');
+      }
+      
+      const quiz = await apiService.fetchQuizById(id);
       setCurrentQuiz(quiz);
       setExecutingQuiz(true);
     } catch (error) {
@@ -165,7 +171,7 @@ const Feed = ({ posts }) => {
 
 
                   
-                  {post.quizId && post.quizId.trim() !== '' ? (
+                  {post.quizId && post.quizId !== null && String(post.quizId).trim() !== '' ? (
                     <div className="post-quiz">
                       <h4>📝 Questionário Disponível</h4>
                       <div className="quiz-info">
