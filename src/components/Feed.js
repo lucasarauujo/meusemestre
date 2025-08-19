@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import QuizExecutor from './QuizExecutor';
+import apiService from '../services/apiService';
 import './Feed.css';
 
 const Feed = ({ posts }) => {
@@ -44,11 +45,7 @@ const Feed = ({ posts }) => {
 
   const handleStartQuiz = async (quizId) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/quizzes/${quizId}`);
-      if (!response.ok) {
-        throw new Error('Questionário não encontrado');
-      }
-      const quiz = await response.json();
+      const quiz = await apiService.fetchQuizById(quizId);
       setCurrentQuiz(quiz);
       setExecutingQuiz(true);
     } catch (error) {
