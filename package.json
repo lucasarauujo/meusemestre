@@ -2,6 +2,11 @@
   "name": "meu-semestre",
   "version": "1.0.0",
   "private": true,
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "proxy": "http://localhost:3001",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
@@ -14,21 +19,23 @@
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "mongoose": "^8.0.3",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "concurrently": "^7.6.0"
   },
   "devDependencies": {
-    "concurrently": "^7.6.0",
     "nodemon": "^2.0.20"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "node server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "server": "node server.js",
-    "dev": "concurrently \"npm run server\" \"npm start\"",
+    "dev": "concurrently \"npm run server\" \"npm run dev:client\"",
+    "dev:client": "react-scripts start",
     "dev:server": "nodemon server.js",
-    "build:full": "npm run build && echo Build completo! Frontend + Backend prontos para hospedagem."
+    "build:full": "npm run build && echo Build completo! Frontend + Backend prontos para hospedagem.",
+    "postinstall": "npm run build"
   },
   "eslintConfig": {
     "extends": [
