@@ -92,9 +92,23 @@ class PostService {
 
   async createPost(postData) {
     if (this.useDatabase) {
+      let quizId = null;
+      
+      // Validar quizId se fornecido
+      if (postData.quizId && postData.quizId.trim() !== '') {
+        const id = postData.quizId.trim();
+        // Verificar se é um ObjectId válido (24 caracteres hexadecimais)
+        if (id.length === 24 && /^[a-fA-F0-9]{24}$/.test(id)) {
+          quizId = id;
+        } else {
+          console.warn(`QuizId inválido ignorado: ${id}`);
+          // Não lança erro, apenas ignora o quizId inválido
+        }
+      }
+
       const transformedData = {
         ...postData,
-        quizId: postData.quizId && postData.quizId.trim() !== '' ? postData.quizId : null
+        quizId: quizId
       };
 
       const post = new Post(transformedData);
@@ -122,13 +136,28 @@ class PostService {
 
   async updatePost(id, postData) {
     if (this.useDatabase) {
+      let quizId = null;
+      
+      // Validar quizId se fornecido
+      if (postData.quizId && postData.quizId.trim() !== '') {
+        const qId = postData.quizId.trim();
+        // Verificar se é um ObjectId válido (24 caracteres hexadecimais)
+        if (qId.length === 24 && /^[a-fA-F0-9]{24}$/.test(qId)) {
+          quizId = qId;
+        } else {
+          console.warn(`QuizId inválido ignorado: ${qId}`);
+        }
+      }
+
+      const transformedData = {
+        ...postData,
+        quizId: quizId,
+        updatedAt: new Date()
+      };
+
       return await Post.findByIdAndUpdate(
         id, 
-        { 
-          ...postData, 
-          quizId: postData.quizId || null,
-          updatedAt: new Date() 
-        },
+        transformedData,
         { new: true, runValidators: true }
       );
     } else {
