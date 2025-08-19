@@ -191,11 +191,13 @@ const PostForm = ({ post, onSubmit, onClose }) => {
                 onChange={handleInputChange}
               >
                 <option value="">Nenhum questionário</option>
-                {availableQuizzes.map(quiz => (
-                  <option key={quiz.id} value={quiz.id}>
+                {availableQuizzes.map(quiz => {
+                  const quizId = quiz._id || quiz.id;
+                  return (
+                  <option key={quizId} value={quizId}>
                     📝 {quiz.titulo} ({quiz.materia}) - {quiz.questionIds?.length || 0} questões
                   </option>
-                ))}
+                )})}
               </select>
               <small className="field-hint">
                 ℹ️ Os usuários poderão acessar e responder o questionário diretamente do feed
