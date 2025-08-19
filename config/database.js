@@ -5,6 +5,12 @@ const connectDB = async () => {
     const mongoURI = process.env.MONGODB_URI || process.env.DATABASE_URL;
     
     if (!mongoURI) {
+      // Em desenvolvimento, permitir continuar sem MongoDB
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('⚠️  MONGODB_URI não configurada - usando modo JSON');
+        return null;
+      }
+      
       console.error('❌ MONGODB_URI não configurada!');
       console.log('📋 Para configurar:');
       console.log('1. Crie conta gratuita em: https://www.mongodb.com/atlas');

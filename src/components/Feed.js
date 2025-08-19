@@ -45,9 +45,23 @@ const Feed = ({ posts }) => {
 
   const handleStartQuiz = async (quizId) => {
     try {
+      // Log para debug
+      console.log('handleStartQuiz chamado com:', { quizId, type: typeof quizId });
+      
       // Garantir que quizId é uma string válida
-      const id = String(quizId).trim();
-      if (!id) {
+      let id;
+      if (typeof quizId === 'object' && quizId !== null) {
+        // Se for um objeto, tentar extrair o ID
+        id = quizId._id || quizId.id || String(quizId);
+      } else {
+        id = String(quizId);
+      }
+      
+      id = id.trim();
+      
+      console.log('ID processado:', { id, length: id.length });
+      
+      if (!id || id === 'null' || id === 'undefined') {
         throw new Error('ID do questionário inválido');
       }
       

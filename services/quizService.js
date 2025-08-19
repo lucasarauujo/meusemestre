@@ -11,6 +11,19 @@ class QuizService {
     this.useDatabase = false;
   }
 
+  // Expor método readFromJSON para uso em outros serviços
+  async readFromJSON() {
+    try {
+      const data = await fs.readFile(QUIZZES_FILE, 'utf8');
+      return JSON.parse(data);
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return [];
+      }
+      throw error;
+    }
+  }
+
   // Inicializa o serviço e verifica se pode usar MongoDB
   async initialize() {
     try {
@@ -86,18 +99,7 @@ class QuizService {
     }
   }
 
-  // Lê dados do arquivo JSON
-  async readFromJSON() {
-    try {
-      const data = await fs.readFile(QUIZZES_FILE, 'utf8');
-      return JSON.parse(data);
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        return [];
-      }
-      throw error;
-    }
-  }
+
 
   // Salva dados no arquivo JSON
   async saveToJSON(quizzes) {
@@ -108,10 +110,17 @@ class QuizService {
 
   async getAllQuizzes() {
     if (this.useDatabase) {
-      return await Quiz.find()
+      const quizzes = await Quiz.find()
         .populate('questionIds', 'materia enunciado')
         .sort({ createdAt: -1 })
         .lean();
+      
+      // Transformar o resultado para garantir IDs como strings
+      return quizzes.map(quiz => ({
+        ...quiz,
+        id: quiz._id.toString(),
+        _id: quiz._id.toString()
+      }));
     } else {
       const quizzes = await this.readFromJSON();
       return quizzes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -120,7 +129,23 @@ class QuizService {
 
   async getQuizById(id) {
     if (this.useDatabase) {
-      const quiz = await Quiz.findById(id).lean();
+      // Garantir que o ID seja uma string válida antes de usar
+      let quizId;
+      if (typeof id === 'object' && id._id) {
+        quizId = id._id.toString();
+      } else if (typeof id === 'object' && id.id) {
+        quizId = id.id.toString();
+      } else {
+        quizId = String(id).trim();
+      }
+      
+      // Verificar se é um ObjectId válido
+      if (!quizId || quizId.length !== 24 || !/^[a-fA-F0-9]{24}$/.test(quizId)) {
+        console.error('ID de quiz inválido:', { original: id, processed: quizId });
+        return null;
+      }
+      
+      const quiz = await Quiz.findById(quizId).lean();
       
       if (!quiz) return null;
       
@@ -131,6 +156,7 @@ class QuizService {
       
       return {
         ...quiz,
+        id: quiz._id.toString(),
         questions: questions // Questões completas para execução
       };
     } else {
@@ -174,7 +200,14 @@ class QuizService {
         ...quizData,
         questionIds: objectIds
       });
-      return await quiz.save();
+      const savedQuiz = await quiz.save();
+      
+      // Retornar com IDs como strings para consistência
+      return {
+        ...savedQuiz.toObject(),
+        id: savedQuiz._id.toString(),
+        _id: savedQuiz._id.toString()
+      };
     } else {
       const quizzes = await this.readFromJSON();
       
@@ -232,11 +265,20 @@ class QuizService {
 
       transformedData.updatedAt = new Date();
 
-      return await Quiz.findByIdAndUpdate(
+      const updatedQuiz = await Quiz.findByIdAndUpdate(
         id, 
         transformedData,
         { new: true, runValidators: true }
       );
+      
+      if (!updatedQuiz) return null;
+      
+      // Retornar com IDs como strings para consistência
+      return {
+        ...updatedQuiz.toObject(),
+        id: updatedQuiz._id.toString(),
+        _id: updatedQuiz._id.toString()
+      };
     } else {
       const quizzes = await this.readFromJSON();
       const quizIndex = quizzes.findIndex(q => q.id === id);

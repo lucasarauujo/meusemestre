@@ -24,6 +24,25 @@ class PostService {
     }
   }
 
+  // Força re-migração (para corrigir dados corrompidos)
+  async forceMigration() {
+    if (!this.useDatabase) return;
+    
+    try {
+      console.log('🔄 Forçando re-migração dos posts...');
+      
+      // Limpar posts existentes
+      await Post.deleteMany({});
+      
+      // Re-migrar
+      await this.migrateFromJSON();
+      
+      console.log('✅ Re-migração de posts concluída!');
+    } catch (error) {
+      console.error('❌ Erro na re-migração:', error);
+    }
+  }
+
   // Migra dados do JSON para MongoDB (apenas uma vez)
   async migrateFromJSON() {
     try {
@@ -35,14 +54,51 @@ class PostService {
 
       console.log(`🔄 Migrando ${jsonData.length} posts do JSON para MongoDB...`);
       
+      // Primeiro, obter o mapeamento de IDs de quiz do JSON para MongoDB
+      const Quiz = require('../models/Quiz');
+      const allQuizzes = await Quiz.find().lean();
+      const quizService = require('./quizService');
+      const jsonQuizzes = await quizService.readFromJSON();
+      
+      // Criar mapeamento de ID JSON -> ObjectId MongoDB
+      const quizIdMapping = {};
+      for (const jsonQuiz of jsonQuizzes) {
+        // Encontrar o quiz correspondente no MongoDB pelo título e matéria
+        const mongoQuiz = allQuizzes.find(q => 
+          q.titulo === jsonQuiz.titulo && 
+          q.materia === jsonQuiz.materia
+        );
+        if (mongoQuiz) {
+          quizIdMapping[jsonQuiz.id] = mongoQuiz._id.toString();
+        }
+      }
+      
+      console.log('Mapeamento de Quiz IDs:', quizIdMapping);
+      
       for (const item of jsonData) {
+        // Mapear quizId do JSON para ObjectId do MongoDB
+        let quizId = null;
+        if (item.quizId && item.quizId.trim() !== '') {
+          const jsonQuizId = item.quizId.trim();
+          
+          if (quizIdMapping[jsonQuizId]) {
+            quizId = quizIdMapping[jsonQuizId];
+            console.log(`Mapeando quizId: ${jsonQuizId} -> ${quizId}`);
+          } else if (jsonQuizId.length === 24 && /^[a-fA-F0-9]{24}$/.test(jsonQuizId)) {
+            // Já é um ObjectId válido
+            quizId = jsonQuizId;
+          } else {
+            console.warn(`QuizId do JSON não encontrado no mapeamento: ${jsonQuizId}`);
+          }
+        }
+        
         const post = new Post({
           title: item.title,
           description: item.description,
           content: item.content,
           audioLink: item.audioLink,
           pdfLink: item.pdfLink,
-          quizId: item.quizId || null
+          quizId: quizId
         });
         
         // Preserva as datas originais
@@ -80,10 +136,17 @@ class PostService {
 
   async getAllPosts() {
     if (this.useDatabase) {
-      return await Post.find()
+      const posts = await Post.find()
         .populate('quizId', 'titulo descricao')
         .sort({ createdAt: -1 })
         .lean();
+      
+      // Transformar o resultado para garantir que quizId seja sempre uma string
+      return posts.map(post => ({
+        ...post,
+        id: post._id.toString(),
+        quizId: post.quizId ? (post.quizId._id || post.quizId).toString() : null
+      }));
     } else {
       const posts = await this.readFromJSON();
       return posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -112,7 +175,14 @@ class PostService {
       };
 
       const post = new Post(transformedData);
-      return await post.save();
+      const savedPost = await post.save();
+      
+      // Retornar com IDs como strings para consistência
+      return {
+        ...savedPost.toObject(),
+        id: savedPost._id.toString(),
+        quizId: savedPost.quizId ? savedPost.quizId.toString() : null
+      };
     } else {
       const posts = await this.readFromJSON();
       
@@ -155,11 +225,20 @@ class PostService {
         updatedAt: new Date()
       };
 
-      return await Post.findByIdAndUpdate(
+      const updatedPost = await Post.findByIdAndUpdate(
         id, 
         transformedData,
         { new: true, runValidators: true }
       );
+      
+      if (!updatedPost) return null;
+      
+      // Retornar com IDs como strings para consistência
+      return {
+        ...updatedPost.toObject(),
+        id: updatedPost._id.toString(),
+        quizId: updatedPost.quizId ? updatedPost.quizId.toString() : null
+      };
     } else {
       const posts = await this.readFromJSON();
       const postIndex = posts.findIndex(p => p.id === id);

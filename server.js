@@ -35,6 +35,21 @@ async function initializeServices() {
   }
 }
 
+// Rota temporária para forçar re-migração (debug)
+app.post('/api/force-migration', async (req, res) => {
+  try {
+    console.log('🔄 Iniciando re-migração forçada...');
+    
+    // Re-migrar posts com mapeamento correto
+    await postService.forceMigration();
+    
+    res.json({ success: true, message: 'Re-migração concluída com sucesso!' });
+  } catch (error) {
+    console.error('Erro na re-migração:', error);
+    res.status(500).json({ error: 'Erro na re-migração' });
+  }
+});
+
 // GET - Buscar todos os posts
 app.get('/api/posts', async (req, res) => {
   try {
@@ -276,6 +291,10 @@ app.get('/api/quizzes', async (req, res) => {
 app.get('/api/quizzes/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Log para debug
+    console.log('Buscando quiz com ID:', { id, type: typeof id });
+    
     const quiz = await quizService.getQuizById(id);
     
     if (!quiz) {
