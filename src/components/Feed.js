@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import QuizExecutor from './QuizExecutor';
+import HelpModal from './HelpModal';
 import apiService from '../services/apiService';
 import './Feed.css';
 
 const Feed = ({ posts }) => {
   const [executingQuiz, setExecutingQuiz] = useState(false);
   const [currentQuiz, setCurrentQuiz] = useState(null);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   
 
 
@@ -85,8 +87,19 @@ const Feed = ({ posts }) => {
     <main className="feed">
       <div className="container">
         <div className="feed-header">
-          <h2>📋 Feed dos Resumos</h2>
-          <p>Acompanhe os resumos semanais e materiais de estudo</p>
+          <div className="feed-title-section">
+            <div>
+              <h2>📋 Feed dos Resumos</h2>
+              <p>Acompanhe os resumos semanais e materiais de estudo</p>
+            </div>
+            <button 
+              className="help-button"
+              onClick={() => setShowHelpModal(true)}
+              title="Como usar o Meu Semestre"
+            >
+              ❓ Ajuda
+            </button>
+          </div>
         </div>
 
         {posts.length === 0 ? (
@@ -217,6 +230,11 @@ const Feed = ({ posts }) => {
           onClose={handleCloseQuiz}
         />
       )}
+
+      <HelpModal 
+        isOpen={showHelpModal} 
+        onClose={() => setShowHelpModal(false)} 
+      />
     </main>
   );
 };

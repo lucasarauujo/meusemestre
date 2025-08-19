@@ -8,6 +8,15 @@
   margin-bottom: 40px;
 }
 
+.feed-title-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+  gap: 20px;
+}
+
 .feed-header h2 {
   font-size: 32px;
   font-weight: 700;
@@ -19,6 +28,33 @@
   font-size: 16px;
   color: #aaa;
   margin: 0;
+}
+
+.help-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: fit-content;
+}
+
+.help-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+}
+
+.help-button:active {
+  transform: translateY(0);
 }
 
 .empty-state {
@@ -332,4 +368,37 @@
 
 .quiz-btn:active {
   transform: translateY(0);
+}
+
+/* Responsividade para o botão de ajuda */
+@media (max-width: 768px) {
+  .feed-title-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .help-button {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .feed-title-section {
+    padding: 0 10px;
+  }
+  
+  .feed-header h2 {
+    font-size: 24px;
+  }
+  
+  .feed-header p {
+    font-size: 14px;
+  }
+  
+  .help-button {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
 }
