@@ -81,9 +81,16 @@ class QuestionService {
 
   async getAllQuestions() {
     if (this.useDatabase) {
-      return await Question.find()
+      const questions = await Question.find()
         .sort({ materia: 1, createdAt: -1 })
         .lean();
+      
+      // Transformar para garantir que id seja sempre uma string
+      return questions.map(question => ({
+        ...question,
+        id: question._id.toString(),
+        _id: question._id.toString()
+      }));
     } else {
       const questions = await this.readFromJSON();
       return questions.sort((a, b) => {
@@ -97,9 +104,16 @@ class QuestionService {
 
   async getQuestionsByMateria(materia) {
     if (this.useDatabase) {
-      return await Question.find({ 
+      const questions = await Question.find({ 
         materia: new RegExp(materia, 'i') 
       }).lean();
+      
+      // Transformar para garantir que id seja sempre uma string
+      return questions.map(question => ({
+        ...question,
+        id: question._id.toString(),
+        _id: question._id.toString()
+      }));
     } else {
       const questions = await this.readFromJSON();
       return questions.filter(q => 
@@ -124,7 +138,14 @@ class QuestionService {
       };
 
       const question = new Question(transformedData);
-      return await question.save();
+      const savedQuestion = await question.save();
+      
+      // Retornar com IDs como strings para consistência
+      return {
+        ...savedQuestion.toObject(),
+        id: savedQuestion._id.toString(),
+        _id: savedQuestion._id.toString()
+      };
     } else {
       const questions = await this.readFromJSON();
       
@@ -169,11 +190,20 @@ class QuestionService {
         updatedAt: new Date()
       };
 
-      return await Question.findByIdAndUpdate(
+      const updatedQuestion = await Question.findByIdAndUpdate(
         id, 
         transformedData,
         { new: true, runValidators: true }
       );
+      
+      if (!updatedQuestion) return null;
+      
+      // Retornar com IDs como strings para consistência
+      return {
+        ...updatedQuestion.toObject(),
+        id: updatedQuestion._id.toString(),
+        _id: updatedQuestion._id.toString()
+      };
     } else {
       const questions = await this.readFromJSON();
       const questionIndex = questions.findIndex(q => q.id === id);
@@ -207,7 +237,20 @@ class QuestionService {
 
   async deleteQuestion(id) {
     if (this.useDatabase) {
-      const result = await Question.findByIdAndDelete(id);
+      // Validar se o ID é válido
+      if (!id || id === 'undefined' || typeof id !== 'string' || id.trim() === '') {
+        console.error('ID inválido para exclusão:', { id, type: typeof id });
+        return false;
+      }
+      
+      // Verificar se é um ObjectId válido
+      const cleanId = id.trim();
+      if (cleanId.length !== 24 || !/^[a-fA-F0-9]{24}$/.test(cleanId)) {
+        console.error('ObjectId inválido para exclusão:', { id: cleanId });
+        return false;
+      }
+      
+      const result = await Question.findByIdAndDelete(cleanId);
       return !!result;
     } else {
       const questions = await this.readFromJSON();

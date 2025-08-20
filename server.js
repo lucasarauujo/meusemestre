@@ -261,12 +261,18 @@ app.put('/api/questions/:id', async (req, res) => {
 app.delete('/api/questions/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Log para debug
+    console.log('Tentando deletar questão com ID:', { id, type: typeof id });
+    
     const deleted = await questionService.deleteQuestion(id);
     
     if (!deleted) {
+      console.log('Questão não encontrada para exclusão:', id);
       return res.status(404).json({ error: 'Questão não encontrada' });
     }
 
+    console.log('Questão deletada com sucesso:', id);
     res.status(204).send();
   } catch (error) {
     console.error('Erro ao deletar questão:', error);
