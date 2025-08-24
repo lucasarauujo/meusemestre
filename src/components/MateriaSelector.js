@@ -8,6 +8,12 @@ const MateriaSelector = ({ onMateriaSelected, onViewAll }) => {
 
   const materias = [
     {
+      id: 'geral',
+      name: 'Geral',
+      icon: '📋',
+      description: 'Posts gerais e conteúdo diverso'
+    },
+    {
       id: 'psicologia-infantil',
       name: 'Psicologia Infantil',
       icon: '🧸',
@@ -57,14 +63,29 @@ const MateriaSelector = ({ onMateriaSelected, onViewAll }) => {
 
   const loadMateriaStats = async () => {
     try {
+      console.log('🔄 Carregando estatísticas das matérias...');
       const stats = {};
       for (const materia of materias) {
-        const posts = await apiService.fetchPosts(materia.name);
-        stats[materia.id] = posts.length;
+        try {
+          console.log(`📊 Carregando posts da matéria: ${materia.name}`);
+          const posts = await apiService.fetchPosts(materia.name);
+          console.log(`✅ ${materia.name}: ${posts.length} posts encontrados`);
+          stats[materia.id] = posts.length;
+        } catch (materiaError) {
+          console.error(`❌ Erro ao carregar posts da matéria ${materia.name}:`, materiaError);
+          stats[materia.id] = 0;
+        }
       }
+      console.log('📊 Estatísticas carregadas:', stats);
       setMateriaStats(stats);
     } catch (error) {
-      console.error('Erro ao carregar estatísticas:', error);
+      console.error('❌ Erro geral ao carregar estatísticas:', error);
+      // Fallback: definir todas as matérias com 0 posts
+      const fallbackStats = {};
+      materias.forEach(materia => {
+        fallbackStats[materia.id] = 0;
+      });
+      setMateriaStats(fallbackStats);
     }
   };
 
