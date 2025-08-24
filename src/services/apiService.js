@@ -3,9 +3,14 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
   : 'http://localhost:3001/api';
 
 class ApiService {
-  async fetchPosts() {
+  async fetchPosts(materia = null) {
     try {
-      const response = await fetch(`${API_BASE_URL}/posts`);
+      let url = `${API_BASE_URL}/posts`;
+      if (materia && materia !== 'Todas') {
+        url += `?materia=${encodeURIComponent(materia)}`;
+      }
+      
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Erro HTTP: ${response.status}`);
       }
@@ -13,6 +18,19 @@ class ApiService {
     } catch (error) {
       console.error('Erro ao buscar posts:', error);
       throw new Error('Falha ao carregar posts. Verifique sua conexão.');
+    }
+  }
+
+  async fetchMaterias() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/posts/materias`);
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Erro ao buscar matérias:', error);
+      throw new Error('Falha ao carregar matérias. Verifique sua conexão.');
     }
   }
 

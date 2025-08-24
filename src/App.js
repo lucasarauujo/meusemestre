@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Feed from './components/Feed';
 import Admin from './components/Admin';
 import LoginModal from './components/LoginModal';
+import MateriaSelector from './components/MateriaSelector';
 import apiService from './services/apiService';
 
 function App() {
@@ -12,17 +13,26 @@ function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedMateria, setSelectedMateria] = useState('Todas');
+  const [showMateriaSelector, setShowMateriaSelector] = useState(true);
 
   // Carregar posts da API ao inicializar
   useEffect(() => {
     loadPosts();
   }, []);
 
-  const loadPosts = async () => {
+  // Carregar posts quando a matéria selecionada mudar
+  useEffect(() => {
+    if (!loading) {
+      loadPosts(selectedMateria);
+    }
+  }, [selectedMateria]);
+
+  const loadPosts = async (materia = null) => {
     try {
       setLoading(true);
       setError(null);
-      const fetchedPosts = await apiService.fetchPosts();
+      const fetchedPosts = await apiService.fetchPosts(materia);
       setPosts(fetchedPosts);
     } catch (error) {
       console.error('Erro ao carregar posts:', error);
@@ -38,10 +48,29 @@ function App() {
     }
   };
 
+  const handleMateriaChange = (materia) => {
+    setSelectedMateria(materia);
+  };
+
+  const handleMateriaSelected = (materia) => {
+    setSelectedMateria(materia);
+    setShowMateriaSelector(false);
+  };
+
+  const handleViewAll = () => {
+    setSelectedMateria('Todas');
+    setShowMateriaSelector(false);
+  };
+
+  const handleBackToSelector = () => {
+    setShowMateriaSelector(true);
+  };
+
   const addPost = async (postData) => {
     try {
       const newPost = await apiService.createPost(postData);
-      setPosts([newPost, ...posts]);
+      // Recarregar posts para manter o filtro atual
+      await loadPosts(selectedMateria);
       return newPost;
     } catch (error) {
       alert(`❌ Erro ao criar post: ${error.message}`);
@@ -62,9 +91,8 @@ function App() {
   const editPost = async (id, updatedPostData) => {
     try {
       const updatedPost = await apiService.updatePost(id, updatedPostData);
-      setPosts(posts.map(post => 
-        post.id === id ? updatedPost : post
-      ));
+      // Recarregar posts para manter o filtro atual
+      await loadPosts(selectedMateria);
       return updatedPost;
     } catch (error) {
       alert(`❌ Erro ao atualizar post: ${error.message}`);
@@ -132,8 +160,18 @@ function App() {
           onEditPost={editPost}
           onClearPosts={clearOldPosts}
         />
+      ) : showMateriaSelector ? (
+        <MateriaSelector
+          onMateriaSelected={handleMateriaSelected}
+          onViewAll={handleViewAll}
+        />
       ) : (
-        <Feed posts={posts} />
+        <Feed 
+          posts={posts} 
+          selectedMateria={selectedMateria}
+          onMateriaChange={handleMateriaChange}
+          onBackToSelector={handleBackToSelector}
+        />
       )}
 
       {showLogin && (

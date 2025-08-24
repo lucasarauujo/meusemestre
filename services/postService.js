@@ -16,6 +16,7 @@ class PostService {
         this.useDatabase = true;
         console.log('📊 PostService: Usando MongoDB');
         await this.migrateFromJSON();
+        await this.migrateExistingPosts(); // Migrar posts existentes
       } else {
         console.log('📄 PostService: Usando arquivos JSON');
       }
@@ -40,6 +41,46 @@ class PostService {
       console.log('✅ Re-migração de posts concluída!');
     } catch (error) {
       console.error('❌ Erro na re-migração:', error);
+    }
+  }
+
+  // Migra posts existentes para adicionar campo matéria
+  async migrateExistingPosts() {
+    if (!this.useDatabase) return;
+    
+    try {
+      console.log('🔄 Atualizando posts existentes com campo matéria...');
+      
+      // Encontrar posts que não têm campo matéria ou têm valor nulo/vazio
+      const postsToUpdate = await Post.find({
+        $or: [
+          { materia: { $exists: false } },
+          { materia: null },
+          { materia: '' }
+        ]
+      });
+      
+      if (postsToUpdate.length > 0) {
+        console.log(`📝 Atualizando ${postsToUpdate.length} posts...`);
+        
+        // Atualizar posts em lote
+        await Post.updateMany(
+          {
+            $or: [
+              { materia: { $exists: false } },
+              { materia: null },
+              { materia: '' }
+            ]
+          },
+          { $set: { materia: 'Geral' } }
+        );
+        
+        console.log('✅ Posts atualizados com sucesso!');
+      } else {
+        console.log('✅ Todos os posts já possuem campo matéria!');
+      }
+    } catch (error) {
+      console.error('❌ Erro na migração de posts existentes:', error);
     }
   }
 
@@ -98,7 +139,8 @@ class PostService {
           content: item.content,
           audioLink: item.audioLink,
           pdfLink: item.pdfLink,
-          quizId: quizId
+          quizId: quizId,
+          materia: item.materia || 'Geral' // Garantir compatibilidade
         });
         
         // Preserva as datas originais
@@ -134,9 +176,14 @@ class PostService {
 
   // ===== MÉTODOS PÚBLICOS =====
 
-  async getAllPosts() {
+  async getAllPosts(materia = null) {
     if (this.useDatabase) {
-      const posts = await Post.find()
+      let query = {};
+      if (materia && materia !== 'Todas') {
+        query.materia = materia;
+      }
+      
+      const posts = await Post.find(query)
         .populate('quizId', 'titulo descricao')
         .sort({ createdAt: -1 })
         .lean();
@@ -149,7 +196,28 @@ class PostService {
       }));
     } else {
       const posts = await this.readFromJSON();
-      return posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      let filteredPosts = posts;
+      
+      if (materia && materia !== 'Todas') {
+        filteredPosts = posts.filter(post => 
+          (post.materia || 'Geral') === materia
+        );
+      }
+      
+      return filteredPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+  }
+
+  async getAllMaterias() {
+    if (this.useDatabase) {
+      const materias = await Post.distinct('materia');
+      // Garantir que 'Geral' esteja sempre incluído
+      const uniqueMaterias = [...new Set(['Geral', ...materias])];
+      return uniqueMaterias.sort();
+    } else {
+      const posts = await this.readFromJSON();
+      const materias = [...new Set(posts.map(post => post.materia || 'Geral'))];
+      return materias.sort();
     }
   }
 
@@ -194,6 +262,7 @@ class PostService {
         audioLink: postData.audioLink?.trim() || '',
         pdfLink: postData.pdfLink?.trim() || '',
         quizId: postData.quizId?.trim() || '',
+        materia: postData.materia?.trim() || 'Geral',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -255,6 +324,7 @@ class PostService {
         audioLink: postData.audioLink?.trim() || '',
         pdfLink: postData.pdfLink?.trim() || '',
         quizId: postData.quizId?.trim() || '',
+        materia: postData.materia?.trim() || 'Geral',
         updatedAt: new Date().toISOString()
       };
 

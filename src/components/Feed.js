@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import QuizExecutor from './QuizExecutor';
 import HelpModal from './HelpModal';
+import SubjectFilter from './SubjectFilter';
 import apiService from '../services/apiService';
 import './Feed.css';
 
-const Feed = ({ posts }) => {
+const Feed = ({ posts, selectedMateria, onMateriaChange, onBackToSelector }) => {
   const [executingQuiz, setExecutingQuiz] = useState(false);
   const [currentQuiz, setCurrentQuiz] = useState(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -90,17 +91,33 @@ const Feed = ({ posts }) => {
           <div className="feed-title-section">
             <div>
               <h2>📋 Feed dos Resumos</h2>
-              <p>Acompanhe os resumos semanais e materiais de estudo</p>
+              <p>
+                {selectedMateria === 'Todas' 
+                  ? 'Todos os resumos semanais e materiais de estudo'
+                  : `Resumos da matéria: ${selectedMateria}`
+                }
+              </p>
             </div>
-            <button 
-              className="help-button"
-              onClick={() => setShowHelpModal(true)}
-              title="Como usar o Meu Semestre"
-            >
-              ❓ Ajuda
-            </button>
+            <div className="header-actions">
+              <button 
+                className="back-button"
+                onClick={onBackToSelector}
+                title="Voltar para seleção de matéria"
+              >
+                🔙 Voltar
+              </button>
+              <button 
+                className="help-button"
+                onClick={() => setShowHelpModal(true)}
+                title="Como usar o Meu Semestre"
+              >
+                ❓ Ajuda
+              </button>
+            </div>
           </div>
         </div>
+
+
 
         {posts.length === 0 ? (
           <div className="empty-state">
@@ -116,6 +133,9 @@ const Feed = ({ posts }) => {
                   <div className="post-meta">
                     <span className="week-badge">
                       📅 Semana {getWeekNumber(post.createdAt)}
+                    </span>
+                    <span className="materia-badge">
+                      📚 {post.materia || 'Geral'}
                     </span>
                     <span className="post-date">
                       {formatDate(post.createdAt)}

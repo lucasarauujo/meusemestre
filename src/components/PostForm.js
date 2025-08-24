@@ -9,7 +9,8 @@ const PostForm = ({ post, onSubmit, onClose }) => {
     content: post?.content || '',
     audioLink: post?.audioLink || '',
     pdfLink: post?.pdfLink || '',
-    quizId: post?.quizId || ''
+    quizId: post?.quizId || '',
+    materia: post?.materia || 'Geral'
   });
 
   const [availableQuizzes, setAvailableQuizzes] = useState([]);
@@ -99,6 +100,30 @@ const PostForm = ({ post, onSubmit, onClose }) => {
               placeholder="Ex: Resumo da Semana 10 - React Hooks"
               required
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="materia">📚 Matéria *</label>
+            <select
+              id="materia"
+              name="materia"
+              className="select"
+              value={formData.materia}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="Geral">📋 Geral</option>
+              <option value="Psicologia Infantil">🧸 Psicologia Infantil</option>
+              <option value="Técnicas de Avaliação Psicológica IV">📊 Técnicas de Avaliação Psicológica IV</option>
+              <option value="Psicossomática">💊 Psicossomática</option>
+              <option value="Psicofarmacologia">💊 Psicofarmacologia</option>
+              <option value="Neurociência">🧠 Neurociência</option>
+              <option value="Ética Profissional">⚖️ Ética Profissional</option>
+              <option value="Estágio II: Saúde Mental">🏥 Estágio II: Saúde Mental</option>
+            </select>
+            <small className="field-hint">
+              ℹ️ Selecione a matéria relacionada ao conteúdo do post
+            </small>
           </div>
 
           <div className="form-group">

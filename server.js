@@ -50,10 +50,11 @@ app.post('/api/force-migration', async (req, res) => {
   }
 });
 
-// GET - Buscar todos os posts
+// GET - Buscar todos os posts ou por matéria
 app.get('/api/posts', async (req, res) => {
   try {
-    const posts = await postService.getAllPosts();
+    const { materia } = req.query;
+    const posts = await postService.getAllPosts(materia);
     res.json(posts);
   } catch (error) {
     console.error('Erro ao buscar posts:', error);
@@ -61,10 +62,21 @@ app.get('/api/posts', async (req, res) => {
   }
 });
 
+// GET - Buscar todas as matérias dos posts
+app.get('/api/posts/materias', async (req, res) => {
+  try {
+    const materias = await postService.getAllMaterias();
+    res.json(materias);
+  } catch (error) {
+    console.error('Erro ao buscar matérias:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // POST - Criar novo post
 app.post('/api/posts', async (req, res) => {
   try {
-    const { title, description, content, audioLink, pdfLink, quizId } = req.body;
+    const { title, description, content, audioLink, pdfLink, quizId, materia } = req.body;
     
     if (!title || !title.trim()) {
       return res.status(400).json({ error: 'Título é obrigatório' });
@@ -76,7 +88,8 @@ app.post('/api/posts', async (req, res) => {
       content,
       audioLink,
       pdfLink,
-      quizId
+      quizId,
+      materia: materia || 'Geral'
     });
     
     res.status(201).json(newPost);
@@ -90,7 +103,7 @@ app.post('/api/posts', async (req, res) => {
 app.put('/api/posts/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, content, audioLink, pdfLink, quizId } = req.body;
+    const { title, description, content, audioLink, pdfLink, quizId, materia } = req.body;
     
     if (!title || !title.trim()) {
       return res.status(400).json({ error: 'Título é obrigatório' });
@@ -102,7 +115,8 @@ app.put('/api/posts/:id', async (req, res) => {
       content,
       audioLink,
       pdfLink,
-      quizId
+      quizId,
+      materia: materia || 'Geral'
     });
     
     if (!updatedPost) {
