@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import QuizExecutor from './QuizExecutor';
+import HelpModal from './HelpModal';
 import apiService from '../services/apiService';
 import './Feed.css';
 
 const Feed = ({ posts }) => {
   const [executingQuiz, setExecutingQuiz] = useState(false);
   const [currentQuiz, setCurrentQuiz] = useState(null);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   
 
 
@@ -45,9 +47,23 @@ const Feed = ({ posts }) => {
 
   const handleStartQuiz = async (quizId) => {
     try {
+      // Log para debug
+      console.log('handleStartQuiz chamado com:', { quizId, type: typeof quizId });
+      
       // Garantir que quizId é uma string válida
-      const id = String(quizId).trim();
-      if (!id) {
+      let id;
+      if (typeof quizId === 'object' && quizId !== null) {
+        // Se for um objeto, tentar extrair o ID
+        id = quizId._id || quizId.id || String(quizId);
+      } else {
+        id = String(quizId);
+      }
+      
+      id = id.trim();
+      
+      console.log('ID processado:', { id, length: id.length });
+      
+      if (!id || id === 'null' || id === 'undefined') {
         throw new Error('ID do questionário inválido');
       }
       
@@ -71,8 +87,19 @@ const Feed = ({ posts }) => {
     <main className="feed">
       <div className="container">
         <div className="feed-header">
-          <h2>📋 Feed dos Resumos</h2>
-          <p>Acompanhe os resumos semanais e materiais de estudo</p>
+          <div className="feed-title-section">
+            <div>
+              <h2>📋 Feed dos Resumos</h2>
+              <p>Acompanhe os resumos semanais e materiais de estudo</p>
+            </div>
+            <button 
+              className="help-button"
+              onClick={() => setShowHelpModal(true)}
+              title="Como usar o Meu Semestre"
+            >
+              ❓ Ajuda
+            </button>
+          </div>
         </div>
 
         {posts.length === 0 ? (
@@ -203,6 +230,11 @@ const Feed = ({ posts }) => {
           onClose={handleCloseQuiz}
         />
       )}
+
+      <HelpModal 
+        isOpen={showHelpModal} 
+        onClose={() => setShowHelpModal(false)} 
+      />
     </main>
   );
 };
